@@ -5,86 +5,70 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PRIXM Invoice Generator</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 2rem;
-      background-color: #f9f9f9;
-    }
-    .container {
-      max-width: 700px;
-      margin: auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 10px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-    h1 {
-      text-align: center;
-      color: #222;
-    }
-    label {
-      display: block;
-      margin-top: 1rem;
-    }
-    input, textarea {
-      width: 100%;
-      padding: 0.5rem;
-      margin-top: 0.5rem;
-      border: 1px solid #ccc;
-      border-radius: 5px;
-    }
-    button {
-      margin-top: 2rem;
-      padding: 1rem;
-      width: 100%;
-      border: none;
-      background-color: #222;
-      color: white;
-      font-size: 1rem;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .invoice {
-      display: none;
-      padding: 2rem;
-    }
-  </style>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
-  <div class="container">
-    <h1>PRIXM Invoice Generator</h1>
-    <label>Invoice Number</label>
-    <input type="text" id="invoiceNumber" value="INV-0001" />
+<body class="bg-gray-100 font-sans">
+  <div class="flex min-h-screen">
+    <!-- Sidebar -->
+    <div class="w-64 bg-gray-900 text-white p-6 space-y-6">
+      <div class="text-center">
+        <img src="https://via.placeholder.com/100x100.png?text=Logo" class="mx-auto mb-4 rounded-full" alt="PRIXM Logo">
+        <h2 class="text-xl font-bold">PRIXM Music, Inc.</h2>
+      </div>
+      <div>
+        <label class="block text-sm font-medium">Theme</label>
+        <select class="mt-1 block w-full bg-gray-800 border border-gray-700 rounded text-white p-2">
+          <option>Light</option>
+          <option selected>Dark</option>
+        </select>
+      </div>
+    </div>
 
-    <label>Date</label>
-    <input type="date" id="invoiceDate" />
+    <!-- Main Content -->
+    <div class="flex-1 p-10">
+      <h1 class="text-3xl font-bold mb-8">Create Invoice</h1>
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label class="block text-sm font-medium">Invoice Number</label>
+          <input type="text" id="invoiceNumber" value="INV-0001" class="mt-1 block w-full p-2 border rounded" />
 
-    <label>Client Name</label>
-    <input type="text" id="clientName" />
+          <label class="block text-sm font-medium mt-4">Date</label>
+          <input type="date" id="invoiceDate" class="mt-1 block w-full p-2 border rounded" />
 
-    <label>Description</label>
-    <textarea id="description"></textarea>
+          <label class="block text-sm font-medium mt-4">Client Name</label>
+          <input type="text" id="clientName" class="mt-1 block w-full p-2 border rounded" />
 
-    <label>Amount ($)</label>
-    <input type="number" id="amount" />
+          <label class="block text-sm font-medium mt-4">Service Description</label>
+          <textarea id="description" class="mt-1 block w-full p-2 border rounded" rows="3"></textarea>
 
-    <label>Zelle Info</label>
-    <input type="text" id="zelleInfo" value="alex@email.com" />
+          <label class="block text-sm font-medium mt-4">Amount ($)</label>
+          <input type="number" id="amount" class="mt-1 block w-full p-2 border rounded" />
 
-    <button onclick="generateInvoice()">Download Invoice PDF</button>
-  </div>
+          <label class="block text-sm font-medium mt-4">Payment Method</label>
+          <select id="paymentMethod" class="mt-1 block w-full p-2 border rounded">
+            <option>Zelle (alex@email.com)</option>
+            <option>Venmo</option>
+            <option>PayPal</option>
+            <option>Bank Transfer</option>
+          </select>
 
-  <div class="invoice" id="invoiceContent">
-    <h2>PRIXM Music, Inc.</h2>
-    <p id="previewNumber"></p>
-    <p id="previewDate"></p>
-    <p id="previewClient"></p>
-    <h3>Description</h3>
-    <p id="previewDescription"></p>
-    <p><strong>Amount Due: $<span id="previewAmount"></span></strong></p>
-    <p>Zelle to: <span id="previewZelle"></span></p>
+          <button onclick="generateInvoice()" class="mt-6 w-full bg-black text-white py-3 rounded hover:bg-gray-800">Download PDF</button>
+        </div>
+
+        <!-- PDF Preview -->
+        <div class="bg-white rounded shadow p-6" id="invoiceContent">
+          <h2 class="text-2xl font-bold mb-4">Invoice</h2>
+          <p id="previewNumber" class="text-sm"></p>
+          <p id="previewDate" class="text-sm"></p>
+          <p id="previewClient" class="text-sm"></p>
+          <hr class="my-4">
+          <p class="font-semibold">Description:</p>
+          <p id="previewDescription"></p>
+          <p class="mt-4 font-semibold">Amount Due: $<span id="previewAmount"></span></p>
+          <p class="text-sm mt-2">Payment Method: <span id="previewPayment"></span></p>
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
@@ -94,16 +78,10 @@
       document.getElementById('previewClient').innerText = 'Bill To: ' + document.getElementById('clientName').value;
       document.getElementById('previewDescription').innerText = document.getElementById('description').value;
       document.getElementById('previewAmount').innerText = document.getElementById('amount').value;
-      document.getElementById('previewZelle').innerText = document.getElementById('zelleInfo').value;
+      document.getElementById('previewPayment').innerText = document.getElementById('paymentMethod').value;
 
       const element = document.getElementById('invoiceContent');
-      element.style.display = 'block';
-
       html2pdf().from(element).save(document.getElementById('invoiceNumber').value + '.pdf');
-
-      setTimeout(() => {
-        element.style.display = 'none';
-      }, 1000);
     }
   </script>
 </body>
